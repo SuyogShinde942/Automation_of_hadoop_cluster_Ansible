@@ -1,0 +1,74 @@
+- hosts: 192.168.0.109
+  vars_prompt:
+    - name: name_dir
+      private: no
+      prompt: "Enter the directory name for namenode"
+  tasks:
+    - name: "Copying the hadoop software"
+      copy:
+         src: "/root/ansible/hadoopAU/soft/hadoop-1.2.1-1.x86_64.rpm"
+         dest: "/root"
+    - name: "copyingg the jdk software"
+      copy:
+         src: "/root/ansible/hadoopAU/soft/jdk-8u171-linux-x64.rpm"
+         dest: "/root"
+    - name: "Installing Jdk"
+      command: "rpm -i /root/jdk-8u171-linux-x64.rpm"
+      ignore_errors: yes
+    - name: "Installing Hadoop"
+      command: "rpm -i /root/hadoop-1.2.1-1.x86_64.rpm --force"
+      ignore_errors: yes
+    - name: Creating a Directory for namenode
+      file:
+         state: directory
+         path: "/root/{{ name_dir }}"
+    - name: Cofiguration of hdfs-site.xml
+      template:
+              src: "/root/ansible/hadoopAU/confiles/master/hdfs-site.xml"
+              dest: "/etc/hadoop/hdfs-site.xml"
+    - name: Cofiguration of core-site.xml
+      template:
+              src: "/root/ansible/hadoopAU/confiles/master/core-site.xml"
+              dest: "/etc/hadoop/core-site.xml"
+    - name: Fomating the namenode
+      shell: "echo Y | hadoop namenode -format"
+    - name: Starting the hadoop services
+      command: "hadoop-daemon.sh start namenode"
+
+
+- hosts: 192.168.0.103
+  vars_prompt:
+    - name: datanode_name
+      private: no
+      prompt: "Enter the directory name for datanode"
+  tasks:
+    - name: "Copying the hadoop software"
+      copy:
+         src: "/root/ansible/hadoopAU/soft/hadoop-1.2.1-1.x86_64.rpm"
+         dest: "/root"
+    - name: "copyingg the jdk software"
+      copy:
+         src: "/root/ansible/hadoopAU/soft/jdk-8u171-linux-x64.rpm"
+         dest: "/root"
+    - name: "Installing Jdk"
+      command: "rpm -i /root/jdk-8u171-linux-x64.rpm"
+      ignore_errors: yes
+    - name: "Installing Hadoop"
+      command: "rpm -i /root/hadoop-1.2.1-1.x86_64.rpm --force"
+      ignore_errors: yes
+    - name: Creating a Directory for namenode
+      file:
+         state: directory
+         path: "/root/{{ datanode_name }}"
+    - name: Cofiguration of hdfs-site.xml
+      template:
+              src: "/root/ansible/hadoopAU/confiles/slave/hdfs-site.xml"
+              dest: "/etc/hadoop/hdfs-site.xml"
+    - name: Cofiguration of core-site.xml
+      template:
+              src: "/root/ansible/hadoopAU/confiles/slave/core-site.xml"
+              dest: "/etc/hadoop/core-site.xml"
+    - name: Starting the datanode service
+      command: "hadoop-daemon.sh start datanode"
+    - name: Checking the Hadoop Cluster Report
+      command: "hadoop dfsadmin -report"
